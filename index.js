@@ -3,6 +3,10 @@ import readline from "node:readline/promises";
 import { ChatGroq } from "@langchain/groq";
 import { ToolNode } from "@langchain/langgraph/prebuilt";
 import { TavilySearch } from "@langchain/tavily";
+import { MemorySaver } from "@langchain/langgraph";
+
+const checkpointer = new MemorySaver();     //Checkpointer stores the data in the key-value pair in memory with key as the "id" of the 
+                                            //current thread and value as the state at that point of execution       
 
 // 1. Define the node function
 // 2. Build the Graph
@@ -56,7 +60,7 @@ const workflow = new StateGraph(MessagesAnnotation)
 .addConditionalEdges('agent',shouldCall);   //Both the conditional edges i.e. agent-tool and agent-end are covered here
 
 // Compile the graph
-const app = workflow.compile();
+const app = workflow.compile({checkpointer});
 
 
 async function main() {
@@ -72,9 +76,15 @@ async function main() {
 
         const finalState = await app.invoke({
             messages:[{role:"user",content:userInput}]
-        });
+        }, { configurable: { thread_id: "1"} });
+
+        // const finalState = await app.invoke(
+        //     { configurable: { thread_id: "1" } },   // picks up saved state
+        //     { messages: [{ role: "user", content: userInput }] }  // adds new message
+        // );
 
         const lastMessage = finalState.messages[finalState.messages.length - 1];
+        // const lastMessage = finalState.values.messages.at(-1);
         console.log("AI: ",lastMessage.content);
 
     }
