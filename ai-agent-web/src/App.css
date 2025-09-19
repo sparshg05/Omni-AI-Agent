@@ -1,74 +1,307 @@
-/* // filepath: e:\WEB_DEV_WORK\Custom AI agent\ai-agent-web\src\App.css */
+/* App.css */
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background-color: #f5f5f5;
+}
+
 .App {
-  text-align: center;
-  height: 100vh;
   display: flex;
   flex-direction: column;
+  height: 100vh;
+  max-width: 1200px;
+  margin: 0 auto;
+  background-color: white;
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
 }
 
 .App-header {
-  background-color: #282c34;
-  padding: 20px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   color: white;
+  padding: 1rem 2rem;
+  text-align: center;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
 }
 
-.chat-container {
+.App-header h1 {
+  font-size: 1.8rem;
+  font-weight: 600;
+  margin: 0;
+}
+
+main {
   flex: 1;
   display: flex;
   flex-direction: column;
-  padding: 20px;
-  max-width: 800px;
-  margin: 0 auto;
-  width: 100%;
+  overflow: hidden;
 }
 
+/* Chat Container */
+.chat-container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background-color: #fafafa;
+}
+
+/* Messages List */
 .messages-list {
   flex: 1;
   overflow-y: auto;
-  margin-bottom: 20px;
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  scroll-behavior: smooth;
 }
 
+.messages-list::-webkit-scrollbar {
+  width: 6px;
+}
+
+.messages-list::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 3px;
+}
+
+.messages-list::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 3px;
+}
+
+.messages-list::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
+}
+
+/* Message Styles */
 .message {
-  margin: 10px;
-  padding: 10px;
-  border-radius: 8px;
   max-width: 70%;
+  padding: 0.75rem 1rem;
+  border-radius: 1rem;
+  margin-bottom: 0.5rem;
+  position: relative;
+  word-wrap: break-word;
+  line-height: 1.4;
+}
+
+.message p {
+  margin: 0;
+  font-size: 0.95rem;
+}
+
+.message span {
+  font-size: 0.75rem;
+  opacity: 0.6;
+  display: block;
+  margin-top: 0.25rem;
 }
 
 .message.user {
-  background-color: #e3f2fd;
-  margin-left: auto;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  align-self: flex-end;
+  border-bottom-right-radius: 0.25rem;
 }
 
 .message.ai {
-  background-color: #f5f5f5;
-  margin-right: auto;
+  background-color: white;
+  color: #333;
+  align-self: flex-start;
+  border: 1px solid #e0e0e0;
+  border-bottom-left-radius: 0.25rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
+.message.ai span {
+  color: #666;
+}
+
+/* Loading message */
+.message.ai p:contains("AI is thinking") {
+  font-style: italic;
+  opacity: 0.8;
+}
+
+/* Input Container */
 .input-container {
   display: flex;
-  gap: 10px;
-  padding: 10px;
-  background-color: #fff;
-  border-top: 1px solid #ddd;
+  padding: 1rem;
+  background-color: white;
+  border-top: 1px solid #e0e0e0;
+  align-items: center;
+  gap: 0.75rem;
 }
 
 .input-container input {
   flex: 1;
-  padding: 10px;
-  border: 1px solid #ddd;
-  border-radius: 4px;
+  padding: 0.75rem 1rem;
+  border: 2px solid #e0e0e0;
+  border-radius: 25px;
+  font-size: 0.95rem;
+  outline: none;
+  transition: all 0.2s ease;
+  background-color: #f8f9fa;
+}
+
+.input-container input:focus {
+  border-color: #667eea;
+  background-color: white;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.input-container input.disabled {
+  background-color: #f5f5f5;
+  color: #999;
+  cursor: not-allowed;
 }
 
 .input-container button {
-  padding: 10px 20px;
-  background-color: #0088cc;
+  padding: 0.75rem 1.5rem;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   color: white;
   border: none;
-  border-radius: 4px;
+  border-radius: 25px;
   cursor: pointer;
+  font-size: 0.9rem;
+  font-weight: 600;
+  transition: all 0.2s ease;
+  min-width: 80px;
 }
 
-.input-container button:hover {
-  background-color: #006699;
+.input-container button:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+}
+
+.input-container button:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.input-container button:disabled {
+  background: #ccc;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+/* Error states */
+.error-message {
+  background-color: #ffe6e6;
+  border: 1px solid #ff9999;
+  color: #cc0000;
+  padding: 0.75rem;
+  border-radius: 0.5rem;
+  margin: 0.5rem 1rem;
+  font-size: 0.9rem;
+}
+
+.connection-status {
+  padding: 0.5rem 1rem;
+  text-align: center;
+  font-size: 0.85rem;
+  background-color: #fff3cd;
+  border-bottom: 1px solid #ffeaa7;
+  color: #856404;
+}
+
+.connection-status.connected {
+  background-color: #d4edda;
+  color: #155724;
+  border-bottom-color: #c3e6cb;
+}
+
+.connection-status.disconnected {
+  background-color: #f8d7da;
+  color: #721c24;
+  border-bottom-color: #f5c6cb;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .App {
+    height: 100vh;
+    max-width: 100%;
+  }
+
+  .App-header {
+    padding: 1rem;
+  }
+
+  .App-header h1 {
+    font-size: 1.5rem;
+  }
+
+  .message {
+    max-width: 85%;
+  }
+
+  .input-container {
+    padding: 0.75rem;
+  }
+
+  .input-container input {
+    font-size: 16px; /* Prevent zoom on iOS */
+  }
+
+  .messages-list {
+    padding: 0.75rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .message {
+    max-width: 90%;
+    padding: 0.6rem 0.8rem;
+  }
+
+  .input-container {
+    flex-direction: column;
+    gap: 0.5rem;
+    align-items: stretch;
+  }
+
+  .input-container button {
+    align-self: flex-end;
+    min-width: 100px;
+  }
+}
+
+/* Animation for new messages */
+@keyframes slideInMessage {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.message {
+  animation: slideInMessage 0.3s ease-out;
+}
+
+/* Loading animation */
+@keyframes pulse {
+  0%, 100% {
+    opacity: 0.4;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+.message.ai:has(p:contains("AI is thinking")) {
+  animation: pulse 1.5s ease-in-out infinite;
 }
