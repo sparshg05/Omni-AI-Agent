@@ -12,6 +12,10 @@
     "@langchain/core": "^0.3.75",
     "@langchain/groq": "^0.2.3",
     "@langchain/langgraph": "^0.4.9",
-    "@langchain/tavily": "^0.1.5"
+    "@langchain/tavily": "^0.1.5",
+    "body-parser": "^2.2.0",
+    "cors": "^2.8.5",
+    "express": "^5.1.0",
+    "react-dom": "^19.1.1"
   }
 }
