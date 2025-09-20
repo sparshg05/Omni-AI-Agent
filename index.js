@@ -24,8 +24,9 @@ const corsOptions = {
 }
 
 app.use(cors(corsOptions));
-app.use(bodyParser.json());
-app.use(express.json());
+app.use(bodyParser.json({ limit: '10mb' }));
+app.use(express.json({ limit: '10mb' }));
+
 
 const webSearchTool = new TavilySearch({
     maxResults: 3,
@@ -41,18 +42,29 @@ const llm = new ChatGroq({
     maxRetries: 2,
 }).bindTools(tools);
 
+
 async function callModel(state) {
-    const response = await llm.invoke(state.messages);
-    return { messages: [response] };
+    try {
+        console.log("Calling LLM...");
+        const response = await llm.invoke(state.messages);
+        // console.log("LLM response received");
+        return { messages: [response] };
+    } catch (error) {
+        console.error("Error in callModel:", error);
+        throw error;
+    }
 }
 
 function shouldCall(state) {
     const lastMessage = state.messages[state.messages.length - 1];
     if (lastMessage.tool_calls && lastMessage.tool_calls.length > 0) {
+        console.log("Tool calls detected, routing to tools");
         return "tools";
     }
+    console.log("No tool calls, ending conversation");
     return "__end__";
 }
+
 
 const workflow = new StateGraph(MessagesAnnotation)
     .addNode("agent", callModel)
@@ -64,18 +76,47 @@ const workflow = new StateGraph(MessagesAnnotation)
 const appWorkflow = workflow.compile({ checkpointer });
 
 app.post('/api/message', async (req, res) => {
-    const {message} = req.body;
-    console.log("User input:", message);
-    const finalState = await appWorkflow.invoke({
-        messages: [{ role: "user", content: message }]
-    }, { configurable: { thread_id: "1" } });
+    try{
+        const {message} = req.body;
 
-    const lastMessage = finalState.messages[finalState.messages.length - 1];
-    console.log("AI response: ", lastMessage.content);
-    res.json({
-        response: lastMessage.content 
-    });
+        // Validation
+        if (!message || typeof message !== 'string' || message.trim().length === 0) {
+            return res.status(400).json({ 
+                error: 'Message is required and must be a non-empty string' 
+            });
+        }
+
+        if (message.length > 10000) {
+            return res.status(400).json({ 
+                error: 'Message too long. Maximum 10,000 characters allowed.' 
+            });
+        }
+
+        console.log("User input:", message);
+
+        const finalState = await appWorkflow.invoke({
+            messages: [{ role: "user", content: message }]
+        }, { configurable: { thread_id: "1" } });
+
+        const lastMessage = finalState.messages[finalState.messages.length - 1];
+
+        if (!lastMessage || !lastMessage.content) {
+            throw new Error('No response generated from AI');
+        }
+
+        console.log("AI response: ", lastMessage.content);
+
+        res.json({
+            response: lastMessage.content 
+        });
+    }
+    catch(error){
+        console.error("Error processing message:", error);
+        res.status(500).json({ error: 'Internal server error' });
+    }
+
 });
+
 
 app.listen(port, () => {
     console.log(`Server is running on http://localhost:${port}`);

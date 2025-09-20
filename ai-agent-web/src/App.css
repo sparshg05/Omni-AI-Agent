@@ -4,6 +4,20 @@
   box-sizing: border-box;
   margin: 0;
   padding: 0;
+  .markdown-content pre {
+    padding: 0.75rem;
+    margin: 0.5rem 0;
+    overflow-x: auto;
+  }
+
+  .markdown-content pre code {
+    font-size: 0.8rem;
+  }
+
+  .typing-indicator span {
+    width: 5px;
+    height: 5px;
+  }
 }
 
 body {
@@ -63,6 +77,7 @@ main {
   flex-direction: column;
   gap: 1rem;
   scroll-behavior: smooth;
+  scroll-padding-bottom: 20px;
 }
 
 .messages-list::-webkit-scrollbar {
@@ -92,6 +107,12 @@ main {
   position: relative;
   word-wrap: break-word;
   line-height: 1.4;
+  display: flex;
+  flex-direction: column;
+}
+
+.message-content {
+  flex: 1;
 }
 
 .message p {
@@ -99,11 +120,11 @@ main {
   font-size: 0.95rem;
 }
 
-.message span {
+.message-timestamp {
   font-size: 0.75rem;
   opacity: 0.6;
-  display: block;
-  margin-top: 0.25rem;
+  margin-top: 0.5rem;
+  align-self: flex-end;
 }
 
 .message.user {
@@ -126,10 +147,133 @@ main {
   color: #666;
 }
 
-/* Loading message */
-.message.ai p:contains("AI is thinking") {
+/* Markdown Content Styles */
+.markdown-content h1, .markdown-content h2, .markdown-content h3 {
+  margin: 0.5rem 0;
+  font-weight: 600;
+}
+
+.markdown-content h1 {
+  font-size: 1.25rem;
+  border-bottom: 2px solid #e0e0e0;
+  padding-bottom: 0.25rem;
+}
+
+.markdown-content h2 {
+  font-size: 1.15rem;
+  color: #555;
+}
+
+.markdown-content h3 {
+  font-size: 1.05rem;
+  color: #666;
+}
+
+.markdown-content p {
+  margin: 0.5rem 0;
+  line-height: 1.6;
+}
+
+.markdown-content strong {
+  font-weight: 600;
+  color: #333;
+}
+
+.markdown-content em {
   font-style: italic;
-  opacity: 0.8;
+  color: #555;
+}
+
+.markdown-content code.inline-code {
+  background-color: #f1f3f4;
+  padding: 0.2rem 0.4rem;
+  border-radius: 4px;
+  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+  font-size: 0.85rem;
+  color: #d73a49;
+}
+
+.markdown-content pre {
+  background-color: #f8f9fa;
+  border: 1px solid #e9ecef;
+  border-radius: 6px;
+  padding: 1rem;
+  overflow-x: auto;
+  margin: 0.75rem 0;
+}
+
+.markdown-content pre code {
+  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+  font-size: 0.85rem;
+  line-height: 1.4;
+  color: #333;
+  background: none;
+  padding: 0;
+  border-radius: 0;
+}
+
+.markdown-content ul, .markdown-content ol {
+  margin: 0.5rem 0;
+  padding-left: 1.5rem;
+}
+
+.markdown-content li {
+  margin: 0.25rem 0;
+  line-height: 1.5;
+}
+
+.markdown-content a {
+  color: #0366d6;
+  text-decoration: none;
+  border-bottom: 1px solid transparent;
+  transition: border-color 0.2s ease;
+}
+
+.markdown-content a:hover {
+  border-bottom-color: #0366d6;
+}
+
+/* Loading Message Styles */
+.loading-message {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.typing-indicator {
+  display: flex;
+  gap: 0.25rem;
+}
+
+.typing-indicator span {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background-color: #999;
+  animation: typing 1.4s ease-in-out infinite;
+}
+
+.typing-indicator span:nth-child(1) {
+  animation-delay: 0s;
+}
+
+.typing-indicator span:nth-child(2) {
+  animation-delay: 0.2s;
+}
+
+.typing-indicator span:nth-child(3) {
+  animation-delay: 0.4s;
+}
+
+@keyframes typing {
+  0%, 60%, 100% {
+    transform: scale(1);
+    opacity: 0.4;
+  }
+  30% {
+    transform: scale(1.2);
+    opacity: 1;
+  }
 }
 
 /* Input Container */
@@ -280,16 +424,16 @@ main {
 @keyframes slideInMessage {
   from {
     opacity: 0;
-    transform: translateY(10px);
+    transform: translateY(15px) scale(0.95);
   }
   to {
     opacity: 1;
-    transform: translateY(0);
+    transform: translateY(0) scale(1);
   }
 }
 
 .message {
-  animation: slideInMessage 0.3s ease-out;
+  animation: slideInMessage 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
 }
 
 /* Loading animation */
