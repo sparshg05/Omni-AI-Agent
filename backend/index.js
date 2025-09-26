@@ -1,14 +1,28 @@
 import express, { json } from 'express';
 import bodyParser from 'body-parser';
 import cors from 'cors';
+import { config } from 'dotenv';
 import { MemorySaver } from '@langchain/langgraph';
 import { ChatGroq } from '@langchain/groq';
 import { MessagesAnnotation, StateGraph } from '@langchain/langgraph';
 import { ToolNode } from '@langchain/langgraph/prebuilt';
 import { TavilySearch } from '@langchain/tavily';
+import { v4 as uuidv4 } from 'uuid';
+
+// Import database and routes
+import connectDB from './config/database.js';
+import conversationRoutes from './routes/conversations.js';
+import { conversationController } from './controllers/conversationController.js';
+
+// Load environment variables
+config();
 
 const app = express();
 const port = process.env.PORT || 5000;
+
+// Connect to MongoDB
+connectDB();
+
 const checkpointer = new MemorySaver();
 
 // Cross-Origin Isolation headers
@@ -27,6 +41,8 @@ app.use(cors(corsOptions));
 app.use(bodyParser.json({ limit: '10mb' }));
 app.use(express.json({ limit: '10mb' }));
 
+// Conversation Routes
+app.use('/api/conversations', conversationRoutes);
 
 const webSearchTool = new TavilySearch({
     maxResults: 3,
@@ -75,9 +91,10 @@ const workflow = new StateGraph(MessagesAnnotation)
 
 const appWorkflow = workflow.compile({ checkpointer });
 
+// Enhanced message endpoint with MongoDB integration
 app.post('/api/message', async (req, res) => {
-    try{
-        const {message} = req.body;
+    try {
+        const { message, threadId: providedThreadId } = req.body;
 
         // Validation
         if (!message || typeof message !== 'string' || message.trim().length === 0) {
@@ -92,11 +109,19 @@ app.post('/api/message', async (req, res) => {
             });
         }
 
+        // Generate or use provided threadId
+        const threadId = providedThreadId || uuidv4();
+        
         console.log("User input:", message);
+        console.log("Thread ID:", threadId);
 
+        // Save user message to database
+        await conversationController.addMessage(threadId, message, 'user');
+
+        // Process with AI workflow
         const finalState = await appWorkflow.invoke({
             messages: [{ role: "user", content: message }]
-        }, { configurable: { thread_id: "1" } });
+        }, { configurable: { thread_id: threadId } });
 
         const lastMessage = finalState.messages[finalState.messages.length - 1];
 
@@ -104,17 +129,44 @@ app.post('/api/message', async (req, res) => {
             throw new Error('No response generated from AI');
         }
 
-        console.log("AI response: ", lastMessage.content);
+        console.log("AI response:", lastMessage.content);
+
+        // Save AI response to database
+        const updatedConversation = await conversationController.addMessage(
+            threadId, 
+            lastMessage.content, 
+            'ai'
+        );
 
         res.json({
-            response: lastMessage.content 
+            response: lastMessage.content,
+            threadId: threadId,
+            conversationId: updatedConversation._id,
+            messageCount: updatedConversation.messages.length
         });
     }
     catch(error){
         console.error("Error processing message:", error);
-        res.status(500).json({ error: 'Internal server error' });
+        res.status(500).json({ 
+            error: 'Internal server error',
+            message: error.message 
+        });
     }
+});
 
+
+// Root endpoint
+app.get('/', (req, res) => {
+    res.json({
+        message: 'Custom AI Agent Backend',
+        version: '2.0.0',
+        features: ['MongoDB Integration', 'Conversation Management', 'Search', 'AI Chat'],
+        endpoints: {
+            chat: 'POST /api/message',
+            conversations: 'GET /api/conversations',
+            search: 'GET /api/conversations/search'
+        }
+    });
 });
 
 
