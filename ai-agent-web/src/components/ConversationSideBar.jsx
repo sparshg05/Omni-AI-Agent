@@ -1,6 +1,6 @@
 // ai-agent-web/src/components/ConversationSidebar.jsx
 import React, { useState, useEffect } from 'react';
-import { conversationApi } from '../api/conversationApi';
+import { conversationApi } from '../api/Conversation';
 import './ConversationSidebar.css';
 
 const ConversationSidebar = ({ 

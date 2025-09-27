@@ -1,7 +1,7 @@
 import express, { json } from 'express';
 import bodyParser from 'body-parser';
 import cors from 'cors';
-import { config } from 'dotenv';
+import 'dotenv/config';
 import { MemorySaver } from '@langchain/langgraph';
 import { ChatGroq } from '@langchain/groq';
 import { MessagesAnnotation, StateGraph } from '@langchain/langgraph';
@@ -10,12 +10,10 @@ import { TavilySearch } from '@langchain/tavily';
 import { v4 as uuidv4 } from 'uuid';
 
 // Import database and routes
-import connectDB from './config/database.js';
+import connectDB from './config/db.js';
 import conversationRoutes from './routes/conversations.js';
 import { conversationController } from './controllers/conversationController.js';
 
-// Load environment variables
-config();
 
 const app = express();
 const port = process.env.PORT || 5000;
