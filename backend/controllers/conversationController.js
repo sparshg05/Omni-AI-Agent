@@ -46,7 +46,7 @@ export const conversationController = {
             const limit = parseInt(req.query.limit) || 20;
             const skip = (page - 1) * limit;
 
-            const conversations = await Conversation.find({ isActive: true })
+            const conversations = await Conversation.find()
                 .sort({ updatedAt: -1 })
                 .limit(limit)
                 .skip(skip)
@@ -94,8 +94,7 @@ export const conversationController = {
             const { threadId } = req.params;
 
             const conversation = await Conversation.findOne({
-                threadId,
-                isActive: true
+                threadId
             });
 
             if (!conversation) {
@@ -126,13 +125,12 @@ export const conversationController = {
         }
     },
 
-    // FIXED: Add message to conversation - proper thread handling
+    //Add message to conversation - proper thread handling
     addMessage: async (threadId, message, sender) => {
         try {
-            let conversation = await Conversation.findOne({ threadId, isActive: true });
+            let conversation = await Conversation.findOne({ threadId });
 
             if (!conversation) {
-                // FIXED: Don't create new conversation here, return error instead
                 throw new Error(`Conversation with threadId ${threadId} not found`);
             }
 
@@ -143,7 +141,7 @@ export const conversationController = {
                 timestamp: new Date()
             });
 
-            // FIXED: Update conversation title only for the first user message
+            //Conversation title only for the first user message
             if (conversation.messages.length === 1 && sender === 'user') {
                 try {
                     const generatedTitle = await generateConversationTitle(message);
@@ -163,7 +161,7 @@ export const conversationController = {
         }
     },
 
-    // FIXED: Create conversation with first message
+    // Create conversation with first message
     createConversationWithMessage: async (userMessage) => {
         try {
             const threadId = uuidv4();
@@ -205,7 +203,6 @@ export const conversationController = {
             }
 
             const conversations = await Conversation.find({
-                isActive: true,
                 $or: [
                     { title: { $regex: query, $options: 'i' } },
                     { 'messages.content': { $regex: query, $options: 'i' } }
@@ -264,7 +261,7 @@ export const conversationController = {
             }
 
             const conversation = await Conversation.findOneAndUpdate(
-                { threadId, isActive: true },
+                { threadId },
                 { title: title.trim(), updatedAt: new Date() },
                 { new: true }
             );
@@ -300,13 +297,12 @@ export const conversationController = {
         try {
             const { threadId } = req.params;
 
-            const conversation = await Conversation.findOneAndUpdate(
-                { threadId, isActive: true },
-                { isActive: false, updatedAt: new Date() },
-                { new: true }
+            // Use findOneAndDelete instead of findOneAndUpdate
+            const deletedConversation = await Conversation.findOneAndDelete(
+                { threadId }
             );
 
-            if (!conversation) {
+            if (!deletedConversation) {
                 return res.status(404).json({
                     success: false,
                     error: 'Conversation not found'
@@ -315,7 +311,11 @@ export const conversationController = {
 
             res.json({
                 success: true,
-                message: 'Conversation deleted successfully'
+                message: 'Conversation permanently deleted',
+                data: {
+                    threadId: deletedConversation.threadId,
+                    title: deletedConversation.title
+                }
             });
         } catch (error) {
             console.error('Error deleting conversation:', error);
