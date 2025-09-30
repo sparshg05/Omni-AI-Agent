@@ -192,13 +192,13 @@ function App() {
                                     <div className="conversation-title-header">
                                         {currentConversation.title}
                                     </div>
-                                    <div className="conversation-meta-header">
+                                    {/* <div className="conversation-meta-header">
                                         {currentConversation.messageCount > 0 && (
                                             <span className="message-count">
                                                 {currentConversation.messageCount} messages
                                             </span>
                                         )}
-                                    </div>
+                                    </div> */}
                                 </div>
                             )}
                             

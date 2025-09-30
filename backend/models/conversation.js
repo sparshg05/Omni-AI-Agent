@@ -54,18 +54,10 @@ const conversationSchema = new mongoose.Schema({
 });
 
 // Index for text search functionality
-conversationSchema.index({
-    title: 'text',
-    'messages.content': 'text',
-    tags: 'text'
-}, {
-    weights: {
-        title: 10,
-        'messages.content': 5,
-        tags: 8
-    },
-    name: 'conversation_text_index'
-});
+conversationSchema.index({ '$**': 'text' }, { name: 'TextSearchIndex', weights: {
+    title: 10,
+    'messages.content': 5
+}, default_language: 'none', language_override: 'none' });
 
 // Pre-save middleware to update the updatedAt field
 conversationSchema.pre('save', function(next) {

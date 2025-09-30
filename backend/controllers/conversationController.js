@@ -206,14 +206,12 @@ export const conversationController = {
 
             const conversations = await Conversation.find({
                 isActive: true,
-                $text: { $search: query }
-            }, { 
-                score: { $meta: 'textScore' } 
+                $or: [
+                    { title: { $regex: query, $options: 'i' } },
+                    { 'messages.content': { $regex: query, $options: 'i' } }
+                ]
             })
-            .sort({ 
-                score: { $meta: 'textScore' }, 
-                updatedAt: -1 
-            })
+            .sort({ updatedAt: -1 })
             .limit(limit)
             .skip(skip)
             .lean();
