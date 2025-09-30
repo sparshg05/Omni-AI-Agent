@@ -1,4 +1,5 @@
-import express, { json } from 'express';
+// index.js - FIXED Conversation Flow
+import express from 'express';
 import bodyParser from 'body-parser';
 import cors from 'cors';
 import 'dotenv/config';
@@ -7,13 +8,14 @@ import { ChatGroq } from '@langchain/groq';
 import { MessagesAnnotation, StateGraph } from '@langchain/langgraph';
 import { ToolNode } from '@langchain/langgraph/prebuilt';
 import { TavilySearch } from '@langchain/tavily';
-import { v4 as uuidv4 } from 'uuid';
 
 // Import database and routes
 import connectDB from './config/db.js';
 import conversationRoutes from './routes/conversations.js';
 import { conversationController } from './controllers/conversationController.js';
 
+// Load environment variables
+// config();
 
 const app = express();
 const port = process.env.PORT || 5000;
@@ -21,6 +23,7 @@ const port = process.env.PORT || 5000;
 // Connect to MongoDB
 connectDB();
 
+// In-memory storage for active conversations (LangGraph checkpointer)
 const checkpointer = new MemorySaver();
 
 // Cross-Origin Isolation headers
@@ -31,7 +34,7 @@ app.use((req, res, next) => {
 });
 
 const corsOptions = {
-    origin: 'http://localhost:3000',
+    origin: ['http://localhost:3000', 'http://127.0.0.1:3000'],
     credentials: true,
 }
 
@@ -39,9 +42,10 @@ app.use(cors(corsOptions));
 app.use(bodyParser.json({ limit: '10mb' }));
 app.use(express.json({ limit: '10mb' }));
 
-// Conversation Routes
+// Routes
 app.use('/api/conversations', conversationRoutes);
 
+// Initialize AI components
 const webSearchTool = new TavilySearch({
     maxResults: 3,
     topic: "general",
@@ -56,12 +60,10 @@ const llm = new ChatGroq({
     maxRetries: 2,
 }).bindTools(tools);
 
-
 async function callModel(state) {
     try {
         console.log("Calling LLM...");
         const response = await llm.invoke(state.messages);
-        // console.log("LLM response received");
         return { messages: [response] };
     } catch (error) {
         console.error("Error in callModel:", error);
@@ -79,7 +81,6 @@ function shouldCall(state) {
     return "__end__";
 }
 
-
 const workflow = new StateGraph(MessagesAnnotation)
     .addNode("agent", callModel)
     .addNode("tools", toolNode)
@@ -89,10 +90,10 @@ const workflow = new StateGraph(MessagesAnnotation)
 
 const appWorkflow = workflow.compile({ checkpointer });
 
-// Enhanced message endpoint with MongoDB integration
+// FIXED: Enhanced message endpoint with proper conversation flow
 app.post('/api/message', async (req, res) => {
     try {
-        const { message, threadId: providedThreadId } = req.body;
+        const { message, threadId } = req.body;
 
         // Validation
         if (!message || typeof message !== 'string' || message.trim().length === 0) {
@@ -107,14 +108,33 @@ app.post('/api/message', async (req, res) => {
             });
         }
 
-        // Generate or use provided threadId
-        const threadId = providedThreadId || uuidv4();
-        
         console.log("User input:", message);
         console.log("Thread ID:", threadId);
 
-        // Save user message to database
-        await conversationController.addMessage(threadId, message, 'user');
+        let conversation;
+        let isNewConversation = false;
+
+        // FIXED: Handle conversation creation and message adding properly
+        if (!threadId) {
+            // No threadId provided - this shouldn't happen with proper frontend
+            return res.status(400).json({
+                error: 'ThreadId is required. Please create a conversation first.'
+            });
+        }
+
+        try {
+            // Try to add message to existing conversation
+            conversation = await conversationController.addMessage(threadId, message, 'user');
+        } catch (error) {
+            if (error.message.includes('not found')) {
+                // Conversation doesn't exist, create new one
+                console.log("Creating new conversation for threadId:", threadId);
+                conversation = await conversationController.createConversationWithMessage(message);
+                isNewConversation = true;
+            } else {
+                throw error;
+            }
+        }
 
         // Process with AI workflow
         const finalState = await appWorkflow.invoke({
@@ -129,25 +149,88 @@ app.post('/api/message', async (req, res) => {
 
         console.log("AI response:", lastMessage.content);
 
-        // Save AI response to database
+        // Add AI response to the conversation
         const updatedConversation = await conversationController.addMessage(
-            threadId, 
+            conversation.threadId, 
             lastMessage.content, 
             'ai'
         );
 
+        // FIXED: Return proper response structure
         res.json({
+            success: true,
             response: lastMessage.content,
-            threadId: threadId,
+            threadId: updatedConversation.threadId,
             conversationId: updatedConversation._id,
-            messageCount: updatedConversation.messages.length
+            messageCount: updatedConversation.messages.length,
+            conversationTitle: updatedConversation.title,
+            isNewConversation
         });
     }
     catch(error){
         console.error("Error processing message:", error);
         res.status(500).json({ 
+            success: false,
             error: 'Internal server error',
             message: error.message 
+        });
+    }
+});
+
+// FIXED: New endpoint for starting conversations
+app.post('/api/conversations/start', async (req, res) => {
+    try {
+        const { message, title } = req.body;
+
+        if (!message || typeof message !== 'string' || message.trim().length === 0) {
+            return res.status(400).json({
+                success: false,
+                error: 'Initial message is required'
+            });
+        }
+
+        // Create conversation with first message
+        const conversation = await conversationController.createConversationWithMessage(message);
+
+        // Process with AI
+        const finalState = await appWorkflow.invoke({
+            messages: [{ role: "user", content: message }]
+        }, { configurable: { thread_id: conversation.threadId } });
+
+        const lastMessage = finalState.messages[finalState.messages.length - 1];
+
+        if (lastMessage && lastMessage.content) {
+            // Add AI response
+            await conversationController.addMessage(
+                conversation.threadId,
+                lastMessage.content,
+                'ai'
+            );
+        }
+
+        // Get updated conversation
+        const updatedConversation = await conversationController.addMessage(
+            conversation.threadId,
+            lastMessage.content,
+            'ai'
+        );
+
+        res.json({
+            success: true,
+            data: {
+                threadId: updatedConversation.threadId,
+                conversationId: updatedConversation._id,
+                title: updatedConversation.title,
+                messageCount: updatedConversation.messages.length,
+                messages: updatedConversation.messages
+            },
+            aiResponse: lastMessage.content
+        });
+    } catch (error) {
+        console.error('Error starting conversation:', error);
+        res.status(500).json({
+            success: false,
+            error: 'Failed to start conversation'
         });
     }
 });
@@ -161,15 +244,16 @@ app.get('/', (req, res) => {
         features: ['MongoDB Integration', 'Conversation Management', 'Search', 'AI Chat'],
         endpoints: {
             chat: 'POST /api/message',
+            startChat: 'POST /api/conversations/start',
             conversations: 'GET /api/conversations',
-            search: 'GET /api/conversations/search'
+            search: 'GET /api/conversations/search',
+            health: 'GET /api/health'
         }
     });
 });
 
-
 app.listen(port, () => {
-    console.log(`Server is running on http://localhost:${port}`);
+    console.log(`🚀 Server is running on http://localhost:${port}`);
 });
 
 

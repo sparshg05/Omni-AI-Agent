@@ -1,4 +1,4 @@
-// ai-agent-web/src/App.js - FIXED Sidebar Logic
+// ai-agent-web/src/App.js - FIXED Complete Implementation
 import React, { useState, useEffect } from 'react';
 import { ChatProvider } from './context/ChatContext';
 import Chat from './components/Chat';
@@ -8,7 +8,6 @@ import './App.css';
 function App() {
     // Theme management
     const [isDarkMode, setIsDarkMode] = useState(() => {
-        // Check localStorage first, then system preference
         const savedTheme = localStorage.getItem('theme');
         if (savedTheme) {
             return savedTheme === 'dark';
@@ -16,10 +15,10 @@ function App() {
         return window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
     });
     
-    // FIXED: Sidebar state management - start closed by default
+    // Sidebar state management
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
     
-    // Current conversation state
+    // FIXED: Current conversation state
     const [currentThreadId, setCurrentThreadId] = useState(null);
     const [currentConversation, setCurrentConversation] = useState(null);
     
@@ -29,55 +28,43 @@ function App() {
 
     // Theme effect
     useEffect(() => {
-        // Apply theme class to document
         if (isDarkMode) {
             document.documentElement.classList.add('dark-theme');
         } else {
             document.documentElement.classList.remove('dark-theme');
         }
-        
-        // Save theme preference to localStorage
         localStorage.setItem('theme', isDarkMode ? 'dark' : 'light');
     }, [isDarkMode]);
 
-    // FIXED: Responsive sidebar effect - only auto-open on desktop if user manually opened it
+    // Responsive sidebar effect
     useEffect(() => {
         const handleResize = () => {
-            // On mobile, always close sidebar
             if (window.innerWidth < 1024) {
                 setIsSidebarOpen(false);
             }
-            // On desktop, keep current state (don't force open)
         };
 
-        // Set initial state based on screen size
         if (window.innerWidth < 1024) {
             setIsSidebarOpen(false);
         }
         
-        // Add resize listener
         window.addEventListener('resize', handleResize);
-        
-        // Cleanup
         return () => window.removeEventListener('resize', handleResize);
     }, []);
 
     // Keyboard shortcuts effect
     useEffect(() => {
         const handleKeyDown = (e) => {
-            // Toggle sidebar with Ctrl/Cmd + B
             if ((e.ctrlKey || e.metaKey) && e.key === 'b') {
                 e.preventDefault();
                 toggleSidebar();
             }
             
-            // Toggle theme with Ctrl/Cmd + Shift + T
             if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key === 'T') {
                 e.preventDefault();
                 toggleTheme();
             }
             
-            // New conversation with Ctrl/Cmd + N
             if ((e.ctrlKey || e.metaKey) && e.key === 'n') {
                 e.preventDefault();
                 handleNewConversation();
@@ -88,21 +75,20 @@ function App() {
         return () => window.removeEventListener('keydown', handleKeyDown);
     }, []);
 
-    // Theme toggle handler
     const toggleTheme = () => {
         setIsDarkMode(prev => !prev);
     };
 
-    // FIXED: Sidebar toggle handler
     const toggleSidebar = () => {
         setIsSidebarOpen(prev => !prev);
     };
 
-    // Conversation selection handler
+    // FIXED: Conversation selection handler
     const handleConversationSelect = (threadId, conversation = null) => {
+        console.log('Selecting conversation:', threadId, conversation);
         setCurrentThreadId(threadId);
         setCurrentConversation(conversation);
-        setError(null); // Clear any existing errors
+        setError(null);
         
         // Close sidebar on mobile after selection
         if (window.innerWidth < 1024) {
@@ -110,11 +96,12 @@ function App() {
         }
     };
 
-    // New conversation handler
-    const handleNewConversation = (threadId = null) => {
-        setCurrentThreadId(threadId);
+    // FIXED: New conversation handler - just clear current selection
+    const handleNewConversation = () => {
+        console.log('Starting new conversation');
+        setCurrentThreadId(null);
         setCurrentConversation(null);
-        setError(null); // Clear any existing errors
+        setError(null);
         
         // Close sidebar on mobile
         if (window.innerWidth < 1024) {
@@ -122,22 +109,23 @@ function App() {
         }
     };
 
+    // FIXED: Handle when a new conversation is actually created
+    const handleNewConversationCreated = (threadId, conversationData) => {
+        console.log('New conversation created:', threadId, conversationData);
+        setCurrentThreadId(threadId);
+        setCurrentConversation(conversationData);
+        
+        // Refresh sidebar to show new conversation
+        // The sidebar will automatically refresh when it detects the new conversation
+    };
+
     // Conversation update handler
     const handleConversationUpdate = (conversationData) => {
         try {
-            // Update current conversation data when new messages are added
-            if (conversationData.threadId && !currentThreadId) {
-                setCurrentThreadId(conversationData.threadId);
-            }
-            
-            if (conversationData.title || conversationData.createdAt) {
-                setCurrentConversation(prev => ({
-                    ...prev,
-                    ...conversationData
-                }));
-            }
-            
-            // Clear any existing errors on successful update
+            setCurrentConversation(prev => ({
+                ...prev,
+                ...conversationData
+            }));
             setError(null);
         } catch (err) {
             console.error('Error updating conversation:', err);
@@ -145,17 +133,14 @@ function App() {
         }
     };
 
-    // Error dismissal handler
     const dismissError = () => {
         setError(null);
     };
 
-    // Loading state handler
     const handleLoadingChange = (loading) => {
         setIsLoading(loading);
     };
 
-    // FIXED: Determine when to show with-sidebar class
     const shouldShowWithSidebar = isSidebarOpen && window.innerWidth >= 1024;
 
     return (
@@ -179,7 +164,7 @@ function App() {
                     onError={setError}
                 />
                 
-                {/* Main Content Area - FIXED: Use correct condition */}
+                {/* Main Content Area */}
                 <div className={`main-content ${shouldShowWithSidebar ? 'with-sidebar' : ''}`}>
                     {/* Header */}
                     <header className="App-header">
@@ -246,6 +231,7 @@ function App() {
                             onConversationUpdate={handleConversationUpdate}
                             onLoadingChange={handleLoadingChange}
                             onError={setError}
+                            onNewConversationCreated={handleNewConversationCreated}
                         />
                     </main>
                 </div>
