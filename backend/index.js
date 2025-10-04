@@ -14,6 +14,10 @@ import connectDB from './config/db.js';
 import conversationRoutes from './routes/conversations.js';
 import { conversationController } from './controllers/conversationController.js';
 
+
+// Import TMDB tools
+import { tmdbTools } from './tools/tmdbMovieTools.js';
+
 // Load environment variables
 // config();
 
@@ -51,7 +55,7 @@ const webSearchTool = new TavilySearch({
     topic: "general",
 });
 
-const tools = [webSearchTool];
+const tools = [webSearchTool, ...tmdbTools];
 const toolNode = new ToolNode(tools);
 
 const llm = new ChatGroq({
@@ -156,7 +160,7 @@ app.post('/api/message', async (req, res) => {
             'ai'
         );
 
-        // FIXED: Return proper response structure
+        // Return proper response structure
         res.json({
             success: true,
             response: lastMessage.content,
@@ -177,7 +181,7 @@ app.post('/api/message', async (req, res) => {
     }
 });
 
-// FIXED: New endpoint for starting conversations
+// New endpoint for starting conversations
 app.post('/api/conversations/start', async (req, res) => {
     try {
         const { message, title } = req.body;
