@@ -182,7 +182,7 @@ function App() {
                                 </span>
                             </button>
                             
-                            <h1>Your own custom AI agent</h1>
+                            <h1>Omni</h1>
                         </div>
                         
                         <div className="header-right">
