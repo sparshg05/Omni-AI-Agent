@@ -1,7 +1,7 @@
-# Custom AI Agent Documentation
+# Omni AI Agent Documentation
 
-## Project Overview
-This project implements a custom AI agent using LangChain and various other technologies to create an interactive chat interface with web search capabilities.
+## Project Description
+An autonomous conversational AI agent powered by LangGraph that uses multiple tools (Tavily for web search, TMDB for movies) to intelligently assist users through multi-step reasoning and adaptive decision-making.
 
 ## Tech Stack
 Runtime: Bun - A fast all-in-one JavaScript runtime  
