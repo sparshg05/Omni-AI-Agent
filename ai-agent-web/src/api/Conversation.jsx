@@ -1,7 +1,7 @@
 // ai-agent-web/src/api/conversationApi.js
 import axios from 'axios';
 
-const API_URL = 'http://localhost:5000/api';
+const API_URL = 'https://omni-ai-agent-backend.onrender.com/api';
 
 // Configure axios defaults
 const apiClient = axios.create({
