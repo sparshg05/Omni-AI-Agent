@@ -187,7 +187,7 @@ const Chat = ({
             <div className="messages-list" ref={messagesContainerRef}>
                 {messages.length === 0 && !loading && (
                     <div className="welcome-message">
-                        <h2>Welcome to your AI Agent!</h2>
+                        <h2>Welcome to your AI Assistant!</h2>
                         <p>Start a conversation by typing a message below.</p>
                         {currentConversation && (
                             <div className="conversation-info">
