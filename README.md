@@ -84,57 +84,57 @@ GROQ API - Language model inference
 
 ## Agent Decision Flow
 User Query: "What are trending sci-fi movies and why are they popular?"
-     │
-     ▼
-┌─────────────────────────────────────────────┐
-│  LLM Reasoning (ChatGroq)                   │
-│  - Analyzes query intent                    │
-│  - Identifies needed tools                  │
-│  - Plans multi-step approach                │
-└─────────────────┬───────────────────────────┘
-                  │
-                  ▼
-┌─────────────────────────────────────────────┐
-│  Tool Call 1: get_trending_movies           │
-│  Params: { timeWindow: "week" }             │
-└─────────────────┬───────────────────────────┘
-                  │
-                  ▼
-┌─────────────────────────────────────────────┐
-│  TMDB API Response                          │
-│  Returns: [Movie1, Movie2, Movie3...]       │
-└─────────────────┬───────────────────────────┘
-                  │
-                  ▼
-┌─────────────────────────────────────────────┐
-│  LLM Reasoning (Evaluates Results)          │
-│  - Got trending movies ✓                    │
-│  - Need sci-fi filter ✓                     │
-│  - Need explanation ("why popular") ✓       │
-└─────────────────┬───────────────────────────┘
-                  │
-                  ▼
-┌─────────────────────────────────────────────┐
-│  Tool Call 2: web_search                    │
-│  Query: "why are sci-fi movies popular 2025"│
-└─────────────────┬───────────────────────────┘
-                  │
-                  ▼
-┌─────────────────────────────────────────────┐
-│  Tavily API Response                        │
-│  Returns: [Article1, Article2, Article3]    │
-└─────────────────┬───────────────────────────┘
-                  │
-                  ▼
-┌─────────────────────────────────────────────┐
-│  LLM Final Response                         │
-│  - Filters sci-fi from trending             │
-│  - Explains popularity from web search      │
-│  - Formats natural response                 │
-└─────────────────┬───────────────────────────┘
-                  │
-                  ▼
-            User Response
+     │  
+     ▼  
+┌─────────────────────────────────────────────┐  
+│  LLM Reasoning (ChatGroq)                   │  
+│  - Analyzes query intent                    │  
+│  - Identifies needed tools                  │  
+│  - Plans multi-step approach                │  
+└─────────────────┬───────────────────────────┘  
+                  │  
+                  ▼  
+┌─────────────────────────────────────────────┐  
+│  Tool Call 1: get_trending_movies           │  
+│  Params: { timeWindow: "week" }             │  
+└─────────────────┬───────────────────────────┘  
+                  │  
+                  ▼  
+┌─────────────────────────────────────────────┐  
+│  TMDB API Response                          │  
+│  Returns: [Movie1, Movie2, Movie3...]       │  
+└─────────────────┬───────────────────────────┘  
+                  │  
+                  ▼  
+┌─────────────────────────────────────────────┐  
+│  LLM Reasoning (Evaluates Results)          │  
+│  - Got trending movies ✓                    │  
+│  - Need sci-fi filter ✓                     │  
+│  - Need explanation ("why popular") ✓       │  
+└─────────────────┬───────────────────────────┘  
+                  │  
+                  ▼  
+┌─────────────────────────────────────────────┐  
+│  Tool Call 2: web_search                    │  
+│  Query: "why are sci-fi movies popular 2025"│  
+└─────────────────┬───────────────────────────┘  
+                  │  
+                  ▼  
+┌─────────────────────────────────────────────┐  
+│  Tavily API Response                        │  
+│  Returns: [Article1, Article2, Article3]    │  
+└─────────────────┬───────────────────────────┘  
+                  │  
+                  ▼  
+┌─────────────────────────────────────────────┐  
+│  LLM Final Response                         │  
+│  - Filters sci-fi from trending             │  
+│  - Explains popularity from web search      │  
+│  - Formats natural response                 │  
+└─────────────────┬───────────────────────────┘  
+                  │  
+                  ▼  
+            User Response  
 
 
 ## How to Test the Project
