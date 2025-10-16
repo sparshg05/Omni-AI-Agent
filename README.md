@@ -83,7 +83,7 @@ TMDB API - Movie database (1M+ movies)
 GROQ API - Language model inference  
 
 ## Agent Decision Flow
-User Query: "What are trending sci-fi movies and why are they popular?"
+User Query: "What are trending sci-fi movies and why are they popular?"  
      │  
      ▼  
 ┌─────────────────────────────────────────────┐  
