@@ -58,59 +58,132 @@ This creates a truly autonomous agent that can handle complex, multi-step tasks 
 
 
 ## 🛠️ Tech Stack
-**Frontend**  
+**Frontend—**  
 React 19.1.1 - UI framework  
 Axios - HTTP client  
 CSS3 - Styling with custom properties  
 React Context - State management  
 
-**Backend**  
+**Backend—**  
 Node.js / Bun - JavaScript runtime  
 Express 5.1.0 - Web framework  
 MongoDB 8.1.0 - Database  
 Mongoose - ODM for MongoDB  
 
-**AI/ML Stack**  
+**AI/ML Stack—**  
 LangChain Core 0.3.75 - LLM orchestration  
 LangGraph 0.4.9 - Agent workflow management  
 ChatGroq - LLM provider (openai/gpt-oss-120b)  
 Tavily 0.1.5 - Web search tool  
 Zod - Schema validation  
 
-**External APIs**  
+**External APIs—**  
 Tavily Search API - Real-time web search  
 TMDB API - Movie database (1M+ movies)  
 GROQ API - Language model inference  
 
+## Agent Decision Flow
+User Query: "What are trending sci-fi movies and why are they popular?"
+     │
+     ▼
+┌─────────────────────────────────────────────┐
+│  LLM Reasoning (ChatGroq)                   │
+│  - Analyzes query intent                    │
+│  - Identifies needed tools                  │
+│  - Plans multi-step approach                │
+└─────────────────┬───────────────────────────┘
+                  │
+                  ▼
+┌─────────────────────────────────────────────┐
+│  Tool Call 1: get_trending_movies           │
+│  Params: { timeWindow: "week" }             │
+└─────────────────┬───────────────────────────┘
+                  │
+                  ▼
+┌─────────────────────────────────────────────┐
+│  TMDB API Response                          │
+│  Returns: [Movie1, Movie2, Movie3...]       │
+└─────────────────┬───────────────────────────┘
+                  │
+                  ▼
+┌─────────────────────────────────────────────┐
+│  LLM Reasoning (Evaluates Results)          │
+│  - Got trending movies ✓                    │
+│  - Need sci-fi filter ✓                     │
+│  - Need explanation ("why popular") ✓       │
+└─────────────────┬───────────────────────────┘
+                  │
+                  ▼
+┌─────────────────────────────────────────────┐
+│  Tool Call 2: web_search                    │
+│  Query: "why are sci-fi movies popular 2025"│
+└─────────────────┬───────────────────────────┘
+                  │
+                  ▼
+┌─────────────────────────────────────────────┐
+│  Tavily API Response                        │
+│  Returns: [Article1, Article2, Article3]    │
+└─────────────────┬───────────────────────────┘
+                  │
+                  ▼
+┌─────────────────────────────────────────────┐
+│  LLM Final Response                         │
+│  - Filters sci-fi from trending             │
+│  - Explains popularity from web search      │
+│  - Formats natural response                 │
+└─────────────────┬───────────────────────────┘
+                  │
+                  ▼
+            User Response
+
 
 ## How to Test the Project
-1. Prerequisites-  
-//Install Bun if not already installed  
-curl -fsSL https://bun.sh/install | bash  
+**1. Clone the Repository:-**  
+git clone https://github.com/yourusername/omni-ai-agent.git  
+cd omni-ai-agent  
 
 
-2. Project Setup-  
-//Clone the repository  
-git clone <repository-url>  
-cd custom-ai-agent
+**2. Backend Setup:-**  
+// Navigate to backend directory  
+cd custom-ai-agent  
 
-  //Install dependencies  
-  bun install  
+// Install dependencies (choose one)  
+npm install  
+// OR  
+bun install  
+
+// Create environment file  
+cp .env.example .env  
+
+// Edit .env with your API keys  
+nano .env  # or use any text editor  
 
 
-4. Environment Setup  
-Create a .env file with necessary API keys:  
-GROQ_API_KEY=your_groq_api_key  
-TAVILY_API_KEY=your_tavily_api_key  
+**Required Environment Variables:**  
+// MongoDB
+MONGODB_URI=your_mongodburi_key
+
+// API Keys  
+GROQ_API_KEY=your_groq_api_key_here  
+TAVILY_API_KEY=your_tavily_api_key_here  
+TMDB_API_KEY=your_tmdb_api_key_here  
 
 
-5. Running the Application  
-bun run index.js  
+**3. Frontend Setup:-**  
+// Navigate to frontend directory  
+cd ../ai-agent-web  
 
-6. Testing the Chat  
-Start typing messages after the "User:" prompt  
-Ask questions that might require web searches  
-Type "exit" to end the session  
+// Install dependencies  
+npm install  
+
+// Start development server  
+npm start  
+
+**4. Start Backend Server:-**
+// In backend directory (backend)  
+npm start  
+// OR
+bun run index.js   
 
 
 ## Project Structure
