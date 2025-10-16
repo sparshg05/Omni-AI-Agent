@@ -66,3 +66,6 @@ custom-ai-agent/
 ├── package.json    # Project dependencies  
 ├── .env           # Environment variables (not in repo)  
 └── README.md      # Project documentation
+
+
+![langgraph_visualization](https://github.com/user-attachments/assets/7f81ba4e-afd9-438b-bd70-84b6c9357d02)
